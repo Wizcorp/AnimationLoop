@@ -49,9 +49,9 @@ var AnimationLoop = (function () {
         // _defaultGroup sets the key when no group is provided
         var _defaultGroup = "default";
         // _drawMethods holds multiple arrays which are accessed via a key
-        var _drawMethods = [];
+        var _drawMethods = {};
         // _drawMethodsLen holds the length of the _drawMethods array accessed via the same key
-        var _drawMethodsLen = [];
+        var _drawMethodsLen = {};
         // _isRunning to keep track of state for the singleton
         var _isRunning = false;
         // _requestId of the requestAnimFrame so that it can be stopped
@@ -126,20 +126,29 @@ var AnimationLoop = (function () {
 
             /**
              * To remove all draw methods from a group
+             * hasOwnProperty provides a safety check if it is edited
              */
             removeAllDrawMethods: function (group) {
                 group = group || _defaultGroup;
-                _drawMethods[group].length = _drawMethodsLen[group] = 0;
+                if (_drawMethods.hasOwnProperty(group)) {
+                    delete _drawMethods[group];
+                    delete _drawMethodsLen[group];
+                }
             },
 
             /**
              * To remove all draw methods from every group
              */
             removeDrawMethods: function () {
-                _drawMethods.length = _drawMethodsLen = 0;
+                for (var group in _drawMethods) {
+                    if (_drawMethods.hasOwnProperty(group)) {
+                        delete _drawMethods[group];
+                        delete _drawMethodsLen[group];
+                    }
+                }
             }
         };
-    };
+    }
     return {
         /**
          * Get the AnimationLoop Singleton instance if one exists or create it
