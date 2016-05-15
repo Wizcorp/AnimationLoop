@@ -90,5 +90,11 @@ AnimationLoop.prototype.stop = function () {
 	}
 };
 
-// Expose
-module.exports = AnimationLoop;
+var instance;
+
+module.exports = (function(){
+	if (typeof instance === 'undefined') {
+		instance = new AnimationLoop();
+	}
+	return instance;
+})();
