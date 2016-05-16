@@ -28,73 +28,68 @@ var cancelAnimFrame =
 	}
 ;
 
-// Class
-function AnimationLoop() {
-	this._drawMethods = [];
-	this._drawMethodsLen = 0;
-	this._isRunning = false;
-	this._requestId = null;
-}
+var _drawMethods = [];
+var _drawMethodsLen = 0;
+var _isRunning = false;
+var _requestId = null;
 
 // Add a method to run at every frame
-AnimationLoop.prototype.addDrawMethod = function (fn) {
+function addDrawMethod(fn) {
 	if (typeof fn === 'function') {
-		this._drawMethods.push(fn);
-		this._drawMethodsLen = this._drawMethods.length;
+		_drawMethods.push(fn);
+		_drawMethodsLen = _drawMethods.length;
 	}
-};
+}
 
 // Remove all drawing methods
-AnimationLoop.prototype.removeAllDrawMethods = function () {
-	this._drawMethods.length = this._drawMethodsLen = 0;
-};
+function removeAllDrawMethods() {
+	_drawMethods.length = _drawMethodsLen = 0;
+}
 
 // Start the animation loop
-AnimationLoop.prototype.start = function () {
-	var that = this;
+function start() {
 	
 	if (anInstancesIsRunning) {
 		return console.error('AnimationLoop: impossible to start, another AnimationLoop instance is already running');
 	}
 	anInstancesIsRunning = true;
-	this._isRunning = true;
+	_isRunning = true;
 	
 	function onTick() {
-		if (!that._isRunning) {
+		if (!_isRunning) {
 			return;
 		}
-		if (that._drawMethodsLen === 0) {
-			return this.stop();
+		if (_drawMethodsLen === 0) {
+			return stop();
 		}
 		
-		if (that._drawMethodsLen === 1) {
-			that._drawMethods[0]();
+		if (_drawMethodsLen === 1) {
+			_drawMethods[0]();
 		} else {
-			for (var i = 0; i < that._drawMethodsLen; i++) {
-				that._drawMethods[i]();
+			for (var i = 0; i < _drawMethodsLen; i++) {
+				_drawMethods[i]();
 			}
 		}
 		
-		that._requestId = requestAnimFrame(onTick);
+		_requestId = requestAnimFrame(onTick);
 	}
 	
-	this._requestId = requestAnimFrame(onTick);
-};
+	_requestId = requestAnimFrame(onTick);
+}
 
 // Stop the animation loop
-AnimationLoop.prototype.stop = function () {
-	this._isRunning = false;
+function stop() {
+	_isRunning = false;
 	anInstancesIsRunning = false;
-	if (this._requestId) {
-		cancelAnimFrame(this._requestId);
+	if (_requestId) {
+		cancelAnimFrame(_requestId);
 	}
+}
+
+module.exports = {
+	addDrawMethod: addDrawMethod,
+	removeAllDrawMethods: removeAllDrawMethods,
+	start: start,
+	stop: stop
 };
 
-var instance;
-
-module.exports = (function(){
-	if (typeof instance === 'undefined') {
-		instance = new AnimationLoop();
-	}
-	return instance;
-})();
