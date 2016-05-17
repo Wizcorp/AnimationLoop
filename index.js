@@ -86,10 +86,17 @@ function stop() {
 	}
 }
 
-module.exports = {
-	addDrawMethod: addDrawMethod,
-	removeAllDrawMethods: removeAllDrawMethods,
-	start: start,
-	stop: stop
+var instance;
+
+module.exports = function() {
+	if (!instance) {
+		return instance = {
+			addDrawMethod: addDrawMethod,
+			removeAllDrawMethods: removeAllDrawMethods,
+			start: start,
+			stop: stop
+		};
+	}
+	return instance;
 };
 
