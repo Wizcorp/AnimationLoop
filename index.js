@@ -1,6 +1,3 @@
-// Flag to avoid having multiple AnimationLoop running at the same time in the same game/page/application
-var anInstancesIsRunning = false;
-
 // Retrieve the right requestAnimFrame method
 var requestAnimFrame =
 	window.requestAnimationFrame ||
@@ -28,75 +25,77 @@ var cancelAnimFrame =
 	}
 ;
 
-var drawMethods = [];
-var drawMethodsLen = 0;
-var isRunning = false;
-var requestId = null;
+// Class
+function AnimationLoop() {
+	this._drawMethods = [];
+	this._drawMethodsLen = 0;
+	this._isRunning = false;
+	this._requestId = null;
+}
 
 // Add a method to run at every frame
-function addDrawMethod(fn) {
+AnimationLoop.prototype.addDrawMethod = function (fn) {
 	if (typeof fn === 'function') {
-		drawMethods.push(fn);
-		drawMethodsLen = drawMethods.length;
+		this._drawMethods.push(fn);
+		this._drawMethodsLen = this._drawMethods.length;
 	}
-}
+};
 
 // Remove all drawing methods
-function removeAllDrawMethods() {
-	drawMethods.length = drawMethodsLen = 0;
-}
+AnimationLoop.prototype.removeAllDrawMethods = function () {
+	this._drawMethods.length = this._drawMethodsLen = 0;
+};
 
 // Start the animation loop
-function start() {
+AnimationLoop.prototype.start = function () {
+	var that = this;
 	
-	if (anInstancesIsRunning) {
-		return console.error('AnimationLoop: impossible to start, another AnimationLoop instance is already running');
+	if (this._isRunning) {
+		return;
 	}
-	anInstancesIsRunning = true;
-	isRunning = true;
+	this._isRunning = true;
 	
 	function onTick() {
-		if (!isRunning) {
+		if (!that._isRunning) {
 			return;
 		}
-		if (drawMethodsLen === 0) {
-			return stop();
+		if (that._drawMethodsLen === 0) {
+			return this.stop();
 		}
 		
-		if (drawMethodsLen === 1) {
-			drawMethods[0]();
+		if (that._drawMethodsLen === 1) {
+			that._drawMethods[0]();
 		} else {
-			for (var i = 0; i < drawMethodsLen; i++) {
-				drawMethods[i]();
+			for (var i = 0; i < that._drawMethodsLen; i++) {
+				that._drawMethods[i]();
 			}
 		}
 		
-		requestId = requestAnimFrame(onTick);
+		that._requestId = requestAnimFrame(onTick);
 	}
 	
-	requestId = requestAnimFrame(onTick);
-}
+	this._requestId = requestAnimFrame(onTick);
+};
 
 // Stop the animation loop
-function stop() {
-	isRunning = false;
-	anInstancesIsRunning = false;
-	if (requestId) {
-		cancelAnimFrame(requestId);
+AnimationLoop.prototype.stop = function () {
+	this._isRunning = false;
+	if (this._requestId) {
+		cancelAnimFrame(this._requestId);
 	}
-}
+};
 
 var instance;
 
-module.exports = function() {
-	if (!instance) {
-		return instance = {
-			addDrawMethod: addDrawMethod,
-			removeAllDrawMethods: removeAllDrawMethods,
-			start: start,
-			stop: stop
-		};
+// Returns a shared instance of AnimationLoop.
+function getInstance() {
+	if (instance) {
+		return instance;
 	}
-	return instance;
-};
+	return instance = new AnimationLoop();
+}
+
+// Expose
+module.exports = AnimationLoop;
+module.exports.getInstance = getInstance;
 
