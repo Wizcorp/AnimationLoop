@@ -1,6 +1,3 @@
-// Flag to avoid having multiple AnimationLoop running at the same time in the same game/page/application
-var anInstancesIsRunning = false;
-
 // Retrieve the right requestAnimFrame method
 var requestAnimFrame =
 	window.requestAnimationFrame ||
@@ -53,10 +50,9 @@ AnimationLoop.prototype.removeAllDrawMethods = function () {
 AnimationLoop.prototype.start = function () {
 	var that = this;
 	
-	if (anInstancesIsRunning) {
-		return console.error('AnimationLoop: impossible to start, another AnimationLoop instance is already running');
+	if (this._isRunning) {
+		return;
 	}
-	anInstancesIsRunning = true;
 	this._isRunning = true;
 	
 	function onTick() {
@@ -84,11 +80,22 @@ AnimationLoop.prototype.start = function () {
 // Stop the animation loop
 AnimationLoop.prototype.stop = function () {
 	this._isRunning = false;
-	anInstancesIsRunning = false;
 	if (this._requestId) {
 		cancelAnimFrame(this._requestId);
 	}
 };
 
+var instance;
+
+// Returns a shared instance of AnimationLoop.
+function getInstance() {
+	if (instance) {
+		return instance;
+	}
+	return instance = new AnimationLoop();
+}
+
 // Expose
 module.exports = AnimationLoop;
+module.exports.getInstance = getInstance;
+
